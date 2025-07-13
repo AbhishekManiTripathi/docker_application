@@ -1,0 +1,43 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  fastapi_backend:
+    build:
+      context: . # Build context is the current directory (my_multi_app)
+      dockerfile: Dockerfile.fastapi # Specify the Dockerfile for FastAPI
+    ports:
+      - "8000:8000" # Map host port 8000 to container port 8000
+    networks:
+      - app_network # Connect to a custom network
+    # Optional: If you need to see FastAPI logs in real-time, you can add:
+    # logging:
+    #   driver: "json-file"
+    #   options:
+    #     max-size: "10m"
+    #     max-file: "5"
+
+  streamlit_frontend:
+    build:
+      context: . # Build context is the current directory (my_multi_app)
+      dockerfile: Dockerfile.streamlit # Specify the Dockerfile for Streamlit
+    ports:
+      - "8501:8501" # Map host port 8501 to container port 8501
+    networks:
+      - app_network # Connect to the same network as FastAPI
+    environment:
+      # IMPORTANT: Use the service name of the FastAPI container as the host
+      # within the Docker network. 'fastapi_backend' is the service name.
+      FASTAPI_URL: http://fastapi_backend:8000
+    depends_on:
+      - fastapi_backend # Ensure FastAPI starts before Streamlit
+    # Optional: If you need to see Streamlit logs in real-time, you can add:
+    # logging:
+    #   driver: "json-file"
+    #   options:
+    #     max-size: "10m"
+    #     max-file: "5"
+
+networks:
+  app_network:
+    driver: bridge

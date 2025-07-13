@@ -1,0 +1,23 @@
+# Dockerfile.fastapi
+# Use a slim Python base image for smaller size
+FROM python:3.13-slim-bullseye
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy only the requirements file first to leverage Docker layer caching
+COPY ./table_generator/requirements.txt /app/requirements.txt
+
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of your application code
+COPY ./table_generator/main.py /app/main.py
+
+# Expose the port FastAPI will run on
+EXPOSE 8000
+
+# Command to run the FastAPI application
+# Use '0.0.0.0' for host so it's accessible within the Docker network
+# We remove --reload for production containers as it's for development
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"] 
